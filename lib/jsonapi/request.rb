@@ -537,7 +537,10 @@ module JSONAPI
         relationship_resource = resource.resource_klass_for(unformat_key(relationship.options[:class_name] || links_object[:type]).to_s)
         relationship_id = relationship_resource.verify_key(links_object[:id], @context)
         if relationship.polymorphic?
-          { id: relationship_id, type: unformat_key(links_object[:type].to_s) }
+          type_name = unformat_key(links_object[:type]).to_s
+          linkage_object_resource_klass = resource_klass.resource_klass_for(type_name)
+          linkage_object_klass = linkage_object_resource_klass._model_class
+          { id: relationship_id, type: linkage_object_klass.to_s }
         else
           relationship_id
         end
