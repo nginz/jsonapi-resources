@@ -42,15 +42,36 @@ module JSONAPI
       resource_klass = Resource.resource_klass_for(params[:controller]) if params[:controller]
 
       setup_action_method_name = "setup_#{params[:action]}_action"
+      raise params[:_parser_exception] if params[:_parser_exception]
       if respond_to?(setup_action_method_name)
-        raise params[:_parser_exception] if params[:_parser_exception]
         send(setup_action_method_name, params, resource_klass)
+      else
+        setup_custom_action(params, resource_klass)
       end
     rescue ActionController::ParameterMissing => e
       @errors.concat(JSONAPI::Exceptions::ParameterMissing.new(e.param, error_object_overrides).errors)
     rescue JSONAPI::Exceptions::Error => e
       e.error_object_overrides.merge! error_object_overrides
       @errors.concat(e.errors)
+    end
+
+    def setup_custom_action(params, resource_klass)
+      fields = parse_fields(resource_klass, params[:fields])
+      include_directives = parse_include_directives(resource_klass, params[:include])
+      filters = parse_filters(resource_klass, params[:filter])
+      sort_criteria = parse_sort_criteria(resource_klass, params[:sort])
+      paginator = parse_pagination(resource_klass, params[:page])
+
+      @operations << JSONAPI::Operation.new(
+        params[:action],
+        resource_klass,
+        context: context,
+        filters: filters,
+        include_directives: include_directives,
+        sort_criteria: sort_criteria,
+        paginator: paginator,
+        fields: fields
+      )
     end
 
     def setup_index_action(params, resource_klass)
