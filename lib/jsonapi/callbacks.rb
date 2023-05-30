@@ -6,11 +6,17 @@ module JSONAPI
       base.class_eval do
         include ActiveSupport::Callbacks
         base.extend ClassMethods
+        @@callbacks = []
       end
+    end
+
+    def callback_defined?(callback)
+      callback.in?(@@callbacks)
     end
 
     module ClassMethods
       def define_jsonapi_resources_callbacks(*callbacks)
+        @@callbacks = callbacks
         options = callbacks.extract_options!
         options = {
           only: [:before, :around, :after]

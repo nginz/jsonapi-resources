@@ -29,10 +29,16 @@ module JSONAPI
     end
 
     def process
-      run_callbacks :operation do
-        run_callbacks operation_type do
-          @result = send(operation_type)
+      if callback_defined?(operation_type)
+        puts "**** IN CALLBACK ****"
+        run_callbacks :operation do
+          run_callbacks operation_type do
+            @result = send(operation_type)
+          end
         end
+      else
+        puts "**** NOT IN CALLBACK ****"
+        @result = send(operation_type)
       end
 
     rescue JSONAPI::Exceptions::Error => e
