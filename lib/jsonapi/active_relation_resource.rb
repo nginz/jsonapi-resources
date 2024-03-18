@@ -78,7 +78,9 @@ module JSONAPI
       # @option options [Hash] :context The context of the request, set in the controller
       def find_to_populate_by_keys(keys, options = {})
         records = records_for_populate(options).where(_primary_key => keys)
-        records = records.includes(options[:context][:includes]) if options[:context][:includes].present?
+
+        includes = options.dig(:context, :includes, _type)
+        records = records.includes(includes) if includes.present?
         
         resources_for(records, options[:context])
       end
