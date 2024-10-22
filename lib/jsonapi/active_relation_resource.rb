@@ -79,9 +79,8 @@ module JSONAPI
       def find_to_populate_by_keys(keys, options = {})
         records = records_for_populate(options).where(_primary_key => keys)
 
-        includes = options.dig(:context, :includes, _type)
-        records = records.includes(includes) if includes.present?
-        
+        records = records.includes(try(:includes))
+
         resources_for(records, options[:context])
       end
 
